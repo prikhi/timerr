@@ -1,0 +1,9 @@
+[package]
+name = "timerr"
+version = "0.1.0"
+authors = ["Pavan Rikhi <pavan.rikhi@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+notify-rust = "3.5.0"
+chrono = "0.4.6"
