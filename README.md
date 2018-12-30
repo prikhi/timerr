@@ -1,5 +1,7 @@
 # timerr
 
+[![Build Status](https://travis-ci.org/prikhi/timerr.svg?branch=master)](https://travis-ci.org/prikhi/timerr)
+
 Timerr is a simple CLI timer that sends notifications when the timer is up.
 
 First build and install the application:
