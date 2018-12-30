@@ -6,7 +6,7 @@ extern crate time;
 use chrono::prelude::{DateTime, Local, TimeZone};
 use chrono::{Duration, ParseResult};
 use nix::unistd::{fork, ForkResult};
-use notify_rust::Notification;
+use notify_rust::{get_server_information, Notification};
 use std::env;
 use std::process::exit;
 use std::thread::sleep;
@@ -39,11 +39,20 @@ fn main() {
                 exit(1);
             }
         };
+        match get_server_information() {
+            Ok(_) => (),
+            Err(_) => {
+                eprintln!("Could not connect to notification server.");
+                exit(1);
+            }
+        }
         match fork() {
             Ok(ForkResult::Parent { child: _ }) => (),
             Ok(ForkResult::Child) => {
                 sleep(wait);
-                Notification::new().summary(name).timeout(0).show().unwrap();
+                match Notification::new().summary(name).timeout(0).show() {
+                    _ => (),
+                };
             }
             Err(e) => {
                 eprintln!("Could not fork background thread: {}", e);
