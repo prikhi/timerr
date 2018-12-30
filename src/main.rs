@@ -1,10 +1,13 @@
 extern crate chrono;
+extern crate nix;
 extern crate notify_rust;
 
 use chrono::prelude::{Local, TimeZone};
 use chrono::Duration;
+use nix::unistd::{fork, ForkResult};
 use notify_rust::Notification;
 use std::env;
+use std::process::exit;
 use std::thread::sleep;
 
 fn print_usage() {
@@ -28,9 +31,24 @@ fn main() {
         3 => {
             let wait = parse_wait_time(&args[1]);
             let name = &args[2];
-            let wait = wait.to_std().expect("Error converting Durations");
-            sleep(wait);
-            Notification::new().summary(name).timeout(0).show().unwrap();
+            let wait = match wait.to_std() {
+                Ok(r) => r,
+                Err(e) => {
+                    eprintln!("Error converting durations: {}", e);
+                    exit(1);
+                }
+            };
+            match fork() {
+                Ok(ForkResult::Parent { child: _ }) => (),
+                Ok(ForkResult::Child) => {
+                    sleep(wait);
+                    Notification::new().summary(name).timeout(0).show().unwrap();
+                }
+                Err(e) => {
+                    eprintln!("Could not fork background thread: {}", e);
+                    exit(1);
+                }
+            }
         }
         _ => print_usage(),
     };
@@ -41,7 +59,13 @@ fn parse_wait_time(s: &str) -> Duration {
     match Local.datetime_from_str(s, "%H:%M") {
         Ok(t) => t - Local::now(),
         Err(_) => {
-            let diff = s.parse().expect("Could not parse a time or diff");
+            let diff = match s.parse() {
+                Ok(r) => r,
+                Err(e) => {
+                    eprintln!("Could not parse a time or diff: {}", e);
+                    exit(1);
+                }
+            };
             Duration::minutes(diff)
         }
     }

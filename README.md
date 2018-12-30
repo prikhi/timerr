@@ -28,11 +28,10 @@ Make sure you've got a notification daemon!
 
 * Support duration suffixes. E.g., `30s`, `1.5hr`, `20m`
 * Support am/pm times
-* Command should exit immediately, with timer running in background. Currently
-  waits until timer is up to exit. See daemonize package? Or just fork thread
-  and exit, creating zombie process?
 * Optional body text, icon, & sound via CLI flags
 * Default icon & sound via config file
+* Make titles w/ multiple names not require quotes, e.g.: `timerr 10 Hello
+  World`.
 
 
 ## License
