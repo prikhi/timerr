@@ -29,31 +29,31 @@ For example:
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    match args.len() {
-        3 => {
-            let wait = parse_wait_time(&args[1]);
-            let name = &args[2];
-            let wait = match wait.to_std() {
-                Ok(r) => r,
-                Err(OutOfRangeError { .. }) => {
-                    eprintln!("Specified time is in the past.");
-                    exit(1);
-                }
-            };
-            match fork() {
-                Ok(ForkResult::Parent { child: _ }) => (),
-                Ok(ForkResult::Child) => {
-                    sleep(wait);
-                    Notification::new().summary(name).timeout(0).show().unwrap();
-                }
-                Err(e) => {
-                    eprintln!("Could not fork background thread: {}", e);
-                    exit(1);
-                }
+    if args.len() > 2 {
+        let wait = parse_wait_time(&args[1]);
+        let name = &args[2..].join(" ");
+        let wait = match wait.to_std() {
+            Ok(r) => r,
+            Err(OutOfRangeError { .. }) => {
+                eprintln!("Specified time is in the past.");
+                exit(1);
+            }
+        };
+        match fork() {
+            Ok(ForkResult::Parent { child: _ }) => (),
+            Ok(ForkResult::Child) => {
+                sleep(wait);
+                Notification::new().summary(name).timeout(0).show().unwrap();
+            }
+            Err(e) => {
+                eprintln!("Could not fork background thread: {}", e);
+                exit(1);
             }
         }
-        _ => print_usage(),
-    };
+    } else {
+        print_usage();
+        exit(1);
+    }
 }
 
 // Parse a `HH:MM` or `MM` string into a duration of minutes from the current time.

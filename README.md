@@ -21,7 +21,13 @@ timerr 45 "Laundry is done"
 timerr 15:45 "Meeting in 15 minutes"
 ```
 
-Make sure you've got a notification daemon!
+Note that quoting the notification title is not necessary:
+
+```sh
+timerr 15 Grab pizza from oven
+```
+
+Make sure you've got a notification daemon running!
 
 
 ## TODO
@@ -30,8 +36,6 @@ Make sure you've got a notification daemon!
 * Support am/pm times
 * Optional body text, icon, & sound via CLI flags
 * Default icon & sound via config file
-* Make titles w/ multiple names not require quotes, e.g.: `timerr 10 Hello
-  World`.
 
 
 ## License
