@@ -1,14 +1,16 @@
 extern crate chrono;
 extern crate nix;
 extern crate notify_rust;
+extern crate time;
 
-use chrono::prelude::{Local, TimeZone};
-use chrono::Duration;
+use chrono::prelude::{DateTime, Local, TimeZone};
+use chrono::{Duration, ParseResult};
 use nix::unistd::{fork, ForkResult};
 use notify_rust::Notification;
 use std::env;
 use std::process::exit;
 use std::thread::sleep;
+use time::OutOfRangeError;
 
 fn print_usage() {
     println!(
@@ -33,8 +35,8 @@ fn main() {
             let name = &args[2];
             let wait = match wait.to_std() {
                 Ok(r) => r,
-                Err(e) => {
-                    eprintln!("Error converting durations: {}", e);
+                Err(OutOfRangeError { .. }) => {
+                    eprintln!("Specified time is in the past.");
                     exit(1);
                 }
             };
@@ -56,7 +58,7 @@ fn main() {
 
 // Parse a `HH:MM` or `MM` string into a duration of minutes from the current time.
 fn parse_wait_time(s: &str) -> Duration {
-    match Local.datetime_from_str(s, "%H:%M") {
+    match datetime_from_hour_minutes(s) {
         Ok(t) => t - Local::now(),
         Err(_) => {
             let diff = match s.parse() {
@@ -69,4 +71,12 @@ fn parse_wait_time(s: &str) -> Duration {
             Duration::minutes(diff)
         }
     }
+}
+
+// Given a `HH:MM` string, return a datetime for the current day.
+fn datetime_from_hour_minutes(s: &str) -> ParseResult<DateTime<Local>> {
+    let current_date = Local::now();
+    let date_string = current_date.format("%F");
+    let parsable_string = format!("{} {}:00", date_string, s);
+    Local.datetime_from_str(&parsable_string, "%F %H:%M:%S")
 }
